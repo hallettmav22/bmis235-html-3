@@ -80,3 +80,8 @@ h2 {
     margin: 40px auto 10px auto;
     padding-bottom: 6px;
 }
+
+/* NEW STYLE 3: rounded corners on the menu buttons */
+nav img {
+    border-radius: 8px;
+}
