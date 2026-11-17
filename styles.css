@@ -57,3 +57,15 @@ footer {
     color: #777777;
     margin-top: 40px;
 }
+
+/* NEW STYLE 1: links match the brand, with a hover effect */
+p a {
+    color: #C8553D;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+p a:hover {
+    color: #2F4F3E;
+    text-decoration: underline;
+}
