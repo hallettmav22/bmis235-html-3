@@ -46,7 +46,224 @@ still keep an eye out for the next grail.</p>
      This box is empty on purpose. In Part 7 you paste an interactive
      graphic BETWEEN the opening <div> and the closing </div> below.
      ===================================================================== -->
-<div class="showcase"></div>
+<div class="
+  <!-- HTML: the "Dig the Bins" game. 12 piles of clothes; tap one to dig through it.
+     Most piles are junk, but 3 hide real Goomba Grails finds. -->
+<div class="showcase-game">
+  <div class="showcase-head">
+    <div class="showcase-title">Dig the Bins</div>
+    <div class="showcase-sub">Tap a pile to dig. Can you find all 3 grails?</div>
+  </div>
+  <div class="showcase-stats">
+    <span>Digs: <b class="showcase-digs">0</b></span>
+    <span>Grails: <b class="showcase-found">0</b> / 3</span>
+  </div>
+  <div class="showcase-grid"></div>
+  <div class="showcase-msg">Every pile could be the one...</div>
+  <button class="showcase-reset" type="button">Dig again</button>
+</div>
+
+<!-- CSS: brand colors, the bin tiles, the flip animation and the grail glow.
+     Every rule starts with .showcase so it can't change the rest of the page. -->
+<style>
+.showcase .showcase-game {
+  max-width: 540px;
+  margin: 20px auto;
+  padding: 16px;
+  background: #2F4F3E;
+  border: 4px solid #C8553D;
+  border-radius: 10px;
+  font-family: Georgia, serif;
+  color: #F4EDE1;
+  box-sizing: border-box;
+  text-align: center;
+}
+.showcase .showcase-title {
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.showcase .showcase-sub {
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 4px;
+}
+.showcase .showcase-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 12px 0;
+  font-size: 15px;
+}
+.showcase .showcase-stats b {
+  color: #C8553D;
+  background: #F4EDE1;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+.showcase .showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.showcase .showcase-tile {
+  height: 72px;
+  perspective: 600px;
+  cursor: pointer;
+}
+.showcase .showcase-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+.showcase .showcase-tile.dug .showcase-inner {
+  transform: rotateY(180deg);
+}
+.showcase .showcase-front,
+.showcase .showcase-back {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.showcase .showcase-front {
+  background: repeating-linear-gradient(45deg, #C8553D, #C8553D 8px, #b44a34 8px, #b44a34 16px);
+  border: 2px dashed #F4EDE1;
+  font-size: 26px;
+}
+.showcase .showcase-tile:hover .showcase-front {
+  filter: brightness(1.15);
+}
+.showcase .showcase-back {
+  background: #F4EDE1;
+  color: #7a7a7a;
+  transform: rotateY(180deg);
+  font-style: italic;
+}
+.showcase .showcase-tile.grail .showcase-back {
+  background: #F4EDE1;
+  color: #2F4F3E;
+  font-style: normal;
+  font-weight: bold;
+  border: 3px solid #C8553D;
+  animation: showcase-glow 1s ease-in-out 2;
+}
+@keyframes showcase-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(244, 237, 225, 0); }
+  50% { box-shadow: 0 0 18px 6px rgba(244, 237, 225, 0.9); }
+}
+.showcase .showcase-msg {
+  margin-top: 12px;
+  min-height: 22px;
+  font-size: 15px;
+}
+.showcase .showcase-msg.win {
+  font-weight: bold;
+  font-size: 17px;
+}
+.showcase .showcase-reset {
+  margin-top: 10px;
+  padding: 6px 18px;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  background: #F4EDE1;
+  color: #2F4F3E;
+  border: 2px solid #C8553D;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.showcase .showcase-reset:hover {
+  background: #C8553D;
+  color: #F4EDE1;
+}
+@media (max-width: 480px) {
+  .showcase .showcase-tile { height: 64px; }
+  .showcase .showcase-back { font-size: 10px; }
+  .showcase .showcase-title { font-size: 21px; }
+}
+</style>
+
+<!-- JavaScript: shuffles the piles, flips a pile when tapped, counts digs and grails,
+     and shows a win message when all 3 grails are found. -->
+<script>
+(function () {
+  var game = document.querySelector('.showcase .showcase-game');
+  var grid = game.querySelector('.showcase-grid');
+  var digsEl = game.querySelector('.showcase-digs');
+  var foundEl = game.querySelector('.showcase-found');
+  var msg = game.querySelector('.showcase-msg');
+
+  var grails = ["'50s Levi's Big E Jacket", 'Original Nirvana In Utero', 'Patagonia Synchilla'];
+  var junk = ['Faded promo tee', 'Stained khakis', 'Mall-brand polo', 'Pilled fleece',
+              'Office slacks', '5K fun run tee', 'Torn windbreaker', 'Plain gray hoodie', 'One lonely sock'];
+  var junkLines = ['Nope. Keep digging.', 'Just a rag...', 'Bins gonna bin.', 'Not today.', 'Back in the pile.'];
+  var digs = 0, found = 0;
+
+  function shuffle(list) {
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = list[i]; list[i] = list[j]; list[j] = t;
+    }
+    return list;
+  }
+
+  function build() {
+    digs = 0; found = 0;
+    digsEl.textContent = '0';
+    foundEl.textContent = '0';
+    msg.textContent = 'Every pile could be the one...';
+    msg.classList.remove('win');
+    grid.innerHTML = '';
+
+    var items = grails.map(function (g) { return { name: g, grail: true }; })
+      .concat(junk.map(function (j) { return { name: j, grail: false }; }));
+
+    shuffle(items).forEach(function (item) {
+      var tile = document.createElement('div');
+      tile.className = 'showcase-tile';
+      tile.innerHTML = '<div class="showcase-inner">' +
+        '<div class="showcase-front">&#129529;</div>' +
+        '<div class="showcase-back">' + (item.grail ? '&#11088; GRAIL!<br>' : '') + item.name + '</div>' +
+        '</div>';
+      tile.addEventListener('click', function () { dig(tile, item); });
+      grid.appendChild(tile);
+    });
+  }
+
+  function dig(tile, item) {
+    if (tile.classList.contains('dug') || found === 3) return;
+    tile.classList.add('dug');
+    digs++;
+    digsEl.textContent = digs;
+
+    if (item.grail) {
+      tile.classList.add('grail');
+      found++;
+      foundEl.textContent = found;
+      if (found === 3) {
+        msg.textContent = 'All 3 grails in ' + digs + ' digs. That\'s the hunt.';
+        msg.classList.add('win');
+      } else {
+        msg.textContent = 'GRAIL! ' + item.name + '!';
+      }
+    } else {
+      msg.textContent = junkLines[Math.floor(Math.random() * junkLines.length)];
+    }
+  }
+
+  game.querySelector('.showcase-reset').addEventListener('click', build);
+  build();
+})();
+</script>"></div>
 
 <!-- Footer: fill in your name -->
 <footer>Built by Maverick Hallett &middot; BMIS 235</footer>
