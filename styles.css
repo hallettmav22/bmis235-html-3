@@ -69,3 +69,14 @@ p a:hover {
     color: #2F4F3E;
     text-decoration: underline;
 }
+
+/* NEW STYLE 2: section headings with a rust underline */
+h2 {
+    color: #2F4F3E;
+    text-align: center;
+    font-size: 26px;
+    border-bottom: 3px solid #C8553D;
+    max-width: 600px;
+    margin: 40px auto 10px auto;
+    padding-bottom: 6px;
+}
